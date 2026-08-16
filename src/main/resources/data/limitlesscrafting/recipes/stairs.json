@@ -1,0 +1,13 @@
+{
+  "type": "limitlesscrafting:workbench_limitless",
+  "ingredients": [
+    {
+      "item": "minecraft:stone",
+      "count": 6
+    }
+  ],
+  "output": {
+    "item": "minecraft:oak_log",
+    "count": 10
+  }
+}
