@@ -1,0 +1,29 @@
+[IDEAS]
+left panel used for recipe output info like:
+    - name
+    - amount
+    - image
+or/and use it as filter menu
+
+center panel used for displaying preview of selected item with ability to change
+blockstates
+also this panel should display recipes in card styled manner
+
+right panel used for displaying recipe requirements like what materials needed and
+how many highlighting materials with green if player already fulfills requirement and
+with red if not
+
+ability to search recipes (standard ways like name, mod id, etc.)
+ability to filter recipes by categories, materials and other
+(for example, show only chairs made of wood or metal)
+
+
+[RESEARCH]
+IValue should be used to wrap values in widgets
+
+To draw something in gui I need to implement IDrawable
+
+To create widget and draw something I need to extend AbstractWidget
+and use drawable classes to draw item, fluid, structures, etc.
+
+Maybe I need to implement custom Grid

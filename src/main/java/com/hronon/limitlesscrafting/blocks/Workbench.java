@@ -1,5 +1,9 @@
 package com.hronon.limitlesscrafting.blocks;
 
+import brachy.modularui.factory.ClientGUI;
+import brachy.modularui.factory.GuiData;
+import brachy.modularui.factory.UIFactories;
+import brachy.modularui.value.sync.PanelSyncManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -53,12 +57,7 @@ public class Workbench extends Block implements EntityBlock
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof WorkbenchBlockEntity)) return InteractionResult.PASS;
 
-        NetworkHooks.openScreen(
-                (ServerPlayer) player,
-                (MenuProvider) be,
-                pos
-        );
-
+        UIFactories.blockEntity().open(player, pos);
         return InteractionResult.CONSUME;
     }
 }

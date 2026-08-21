@@ -7,8 +7,6 @@ plugins {
     id 'java-library'
 }
 
-apply plugin: 'org.spongepowered.mixin'
-
 version = mod_version
 group = mod_group_id
 
@@ -27,6 +25,8 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            property("mixin.env.remapRefMap", "true")
+            property("mixin.env.refMapRemappingFile", "${projectDir}/build/createSrgToMcp/output.srg")
 
             mods {
                 "${mod_id}" {
@@ -56,16 +56,13 @@ minecraft {
     }
 }
 
+
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven {
         url "https://cursemaven.com"
     }
-    maven {
-        url 'https://maven.gtceu.com/brachy/modularui/modularui-mc1.20.1/'
-    }
-
     maven {
         name "firstdarkdev"
         url "https://maven.firstdark.dev/snapshots"
@@ -75,11 +72,8 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    implementation("com.lowdragmc.ldlib:ldlib-forge-1.20.1:1.0.52") { transitive = false }
-
-    runtimeOnly fg.deobf("curse.maven:emi-580555:8081375")
+    implementation fg.deobf("curse.maven:modularui-624243:8339410")
+    runtimeOnly fg.deobf("curse.maven:curios-309927:6418456")
 }
 
 tasks.named('processResources', ProcessResources).configure {
