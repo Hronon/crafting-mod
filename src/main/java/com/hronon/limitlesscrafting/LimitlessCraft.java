@@ -29,7 +29,6 @@ public class LimitlessCraft
         Blocks.register(modEventBus);
         BlockEntities.register(modEventBus);
         Items.register(modEventBus);
-        Menus.register(modEventBus);
         Recipes.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -43,15 +42,5 @@ public class LimitlessCraft
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
             event.accept(Items.WORKBENCH);
-    }
-
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-            MenuScreens.register(Menus.WORKBENCH.get(), WorkbenchScreen::new);
-        }
     }
 }

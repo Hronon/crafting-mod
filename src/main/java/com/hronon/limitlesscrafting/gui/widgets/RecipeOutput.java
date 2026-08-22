@@ -1,57 +1,63 @@
 package com.hronon.limitlesscrafting.gui.widgets;
 
+import brachy.modularui.api.value.ISyncOrValue;
+import brachy.modularui.api.value.IValue;
+import brachy.modularui.api.widget.IWidget;
+import brachy.modularui.drawable.GuiDraw;
+import brachy.modularui.screen.viewport.ModularGuiContext;
+import brachy.modularui.theme.WidgetThemeEntry;
+import brachy.modularui.value.ObjectValue;
+import brachy.modularui.widget.Widget;
+import com.hronon.limitlesscrafting.blocks.Workbench;
+import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import static com.hronon.limitlesscrafting.LimitlessCraft.MODID;
 
-public class RecipeOutput extends AbstractWidget
+public class RecipeOutput extends Widget<RecipeOutput>
 {
-    private static final ResourceLocation BG =
-            new ResourceLocation(MODID, "textures/gui/recipe_card.png");
+    private IValue<WorkbenchRecipe> recipe;
 
-    public static final int BG_WIDTH = 64;
-    public static final int BG_HEIGHT = 32;
-
-    public static final int BUTTON_WIDTH = 64;
-    public static final int BUTTON_HEIGHT = 16;
-
-    private final Supplier<ItemStack> output;
-
-    public RecipeOutput(int x, int y, int w, int h, Supplier<ItemStack> output) {
-        super(x, y, w, h, Component.empty());
-        this.output = output;
+    public RecipeOutput()    {
     }
 
-    @Override
-    protected void renderWidget(GuiGraphics graphics, int mouse_x, int mouse_y, float delta)
+    public RecipeOutput recipe(IValue<WorkbenchRecipe> supplier)
     {
-        RenderSystem.setShaderTexture(0, BG);
+        setSyncOrValue(ISyncOrValue.orEmpty(supplier));
+        return this;
+    }
 
-        if (isMouseOver(mouse_x, mouse_y))
-        {
-            graphics.blit(BG, getX(), getY(), 0, BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT, BG_WIDTH, BG_HEIGHT);
-        }
-        else
-        {
-            graphics.blit(BG, getX(), getY(), 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, BG_WIDTH, BG_HEIGHT);
-        }
-
-
-        ItemStack item = output.get();
-        if (!item.isEmpty())
-        {
-            graphics.renderItem(item, getX(), getY());
-        }
+    public RecipeOutput recipe(WorkbenchRecipe recipe)
+    {
+        return recipe(new ObjectValue<>(WorkbenchRecipe.class, recipe));
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput narrator) {}
+    public boolean isValidSyncOrValue(@NotNull ISyncOrValue syncOrValue) {
+        return syncOrValue.isValueOfType(WorkbenchRecipe.class);
+    }
+
+    @Override
+    protected void setSyncOrValue(@NotNull ISyncOrValue syncOrValue) {
+        super.setSyncOrValue(syncOrValue);
+        this.recipe = syncOrValue.castValueNullable(WorkbenchRecipe.class);
+    }
+
+    @Override
+    public void draw(ModularGuiContext context, WidgetThemeEntry widgetTheme) {
+        var recipe = this.recipe.getValue();
+
+        GuiDraw.drawItem(context.getGraphics(), recipe.getResultItem(null), 0, 0, 16, 16 ,context.getCurrentDrawingZ());
+    }
 }
