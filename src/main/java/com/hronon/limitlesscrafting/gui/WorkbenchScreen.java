@@ -3,12 +3,14 @@ package com.hronon.limitlesscrafting.gui;
 import brachy.modularui.factory.GuiData;
 import brachy.modularui.screen.ModularPanel;
 import brachy.modularui.screen.UISettings;
+import brachy.modularui.utils.Alignment;
 import brachy.modularui.value.sync.PanelSyncManager;
 import brachy.modularui.widgets.*;
 import brachy.modularui.widgets.layout.Flow;
 import brachy.modularui.widgets.layout.Grid;
 import com.hronon.limitlesscrafting.blocks.Workbench;
 import com.hronon.limitlesscrafting.blocks.WorkbenchBlockEntity;
+import com.hronon.limitlesscrafting.gui.widgets.CustomItemDisplayWidget;
 import com.hronon.limitlesscrafting.gui.widgets.RecipeOutput;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
 import com.hronon.limitlesscrafting.registries.Items;
@@ -60,14 +62,38 @@ public class WorkbenchScreen
 
         for (WorkbenchRecipe recipe : getMatchingRecipes())
         {
-            var recipe_widget = new RecipeOutput().recipe(recipe);
-            recipe_list_widget.child(recipe_widget);
+            var flow = Flow.row()
+                    .widthRel(1f)
+                    .height(34 + 16)
+                    .mainAxisAlignment(Alignment.MainAxis.START)
+                    .crossAxisAlignment(Alignment.CrossAxis.START);
+
+            var item = recipe.getResultItem(null);
+            var amount = Integer.toString(item.getCount());
+            item.setCount(1);
+
+            // get item name and remove brackets
+            var item_name = item.getDisplayName().getString();
+            item_name = item_name.substring(1, item_name.length() - 1).concat(" x" + amount);
+
+            var recipe_widget = new CustomItemDisplayWidget()
+                    .item(item)
+                    .background(RecipeOutput.BG_TEXTURE)
+                    .size(34);
+
+            flow.child(recipe_widget);
+
+            var text_layout = Flow.col()
+                    .height(34)
+                    .mainAxisAlignment(Alignment.MainAxis.START)
+                    .crossAxisAlignment(Alignment.CrossAxis.START)
+                    .padding(10);
+            flow.child(text_layout);
+
+            text_layout.child(new TextWidget(item_name));
+
+            recipe_list_widget.child(flow);
         }
-
-
-        recipe_list_widget.child(new ItemDisplayWidget().item(Items.WORKBENCH.get().getDefaultInstance()));
-        recipe_list_widget.child(new ButtonWidget());
-        recipe_list_widget.child(new TextWidget(Component.translatable("test_string")));
 
         var player_inventory = SlotGroupWidget.playerInventory(true);
         player_inventory.heightRel(0.2f);
@@ -87,6 +113,7 @@ public class WorkbenchScreen
 
         ModularPanel panel = ModularPanel.defaultPanel("workbench_panel")
                 .sizeRel(0.95f)
+                .padding(10)
                 .child(main_layout);
 
         return panel;
