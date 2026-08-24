@@ -4,6 +4,7 @@ import brachy.modularui.factory.GuiData;
 import brachy.modularui.screen.ModularPanel;
 import brachy.modularui.screen.UISettings;
 import brachy.modularui.utils.Alignment;
+import brachy.modularui.value.ObjectValue;
 import brachy.modularui.value.sync.PanelSyncManager;
 import brachy.modularui.widgets.*;
 import brachy.modularui.widgets.layout.Flow;
@@ -11,6 +12,7 @@ import brachy.modularui.widgets.layout.Grid;
 import com.hronon.limitlesscrafting.blocks.Workbench;
 import com.hronon.limitlesscrafting.blocks.WorkbenchBlockEntity;
 import com.hronon.limitlesscrafting.gui.widgets.CustomItemDisplayWidget;
+import com.hronon.limitlesscrafting.gui.widgets.PredefinedWidgets;
 import com.hronon.limitlesscrafting.gui.widgets.RecipeOutput;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
 import com.hronon.limitlesscrafting.registries.Items;
@@ -18,6 +20,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -93,6 +97,12 @@ public class WorkbenchScreen
             text_layout.child(new TextWidget(item_name));
 
             recipe_list_widget.child(flow);
+
+            for (ItemStack req : recipe.inputs())
+            {
+                var test = PredefinedWidgets.recipe_requirement(req).get();
+                recipe_list_widget.child(test);
+            }
         }
 
         var player_inventory = SlotGroupWidget.playerInventory(true);
@@ -108,6 +118,7 @@ public class WorkbenchScreen
         // right panel for recipe requirements and output\
         var right_panel = Flow.col();
         right_panel.widthRel(0.25f);
+
         main_layout.child(right_panel);
 
 

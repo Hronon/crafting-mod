@@ -2,30 +2,38 @@ package com.hronon.limitlesscrafting.recipes;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.hronon.limitlesscrafting.utils.ItemHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.hronon.limitlesscrafting.LimitlessCraft.MODID;
 
 public class WorkbenchRecipe implements Recipe<SimpleContainer>
 {
-    private final NonNullList<Ingredient> input;
+    private final NonNullList<ItemStack> input;
     private final ItemStack output;
     private final ResourceLocation recipe_id;
 
-    public WorkbenchRecipe(NonNullList<Ingredient> input, ItemStack output, ResourceLocation recipe_id)
+    public WorkbenchRecipe(NonNullList<ItemStack> input, ItemStack output, ResourceLocation recipe_id)
     {
         this.input = input;
         this.output = output;
         this.recipe_id = recipe_id;
+    }
+
+    public @NotNull NonNullList<ItemStack> inputs()
+    {
+        return this.input;
     }
 
     @Override
@@ -79,11 +87,18 @@ public class WorkbenchRecipe implements Recipe<SimpleContainer>
             ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(serialized_recipe, "output"));
 
             JsonArray ingredients = GsonHelper.getAsJsonArray(serialized_recipe, "ingredients");
-            NonNullList<Ingredient> input = NonNullList.withSize(ingredients.size(), Ingredient.EMPTY);
+            NonNullList<ItemStack> input = NonNullList.create();
 
-            for (int i = 0; i < input.size(); i++)
+            for (var element : ingredients)
             {
-                input.set(i, Ingredient.fromJson(ingredients.get(i)));
+//                JsonObject ingredient = element.getAsJsonObject();
+//                var item_id = ingredient.get("item").getAsString();
+//                var count = ingredient.get("count").getAsInt();
+
+//                var item = ItemHelper.from_string(item_id);
+//                item.setCount(count);
+                var item = ShapedRecipe.itemStackFromJson(element.getAsJsonObject());
+                input.add(item);
             }
 
             return new WorkbenchRecipe(input, output, recipe_id);
@@ -91,11 +106,11 @@ public class WorkbenchRecipe implements Recipe<SimpleContainer>
 
         @Override
         public @Nullable WorkbenchRecipe fromNetwork(ResourceLocation recipe_id, FriendlyByteBuf buffer) {
-            NonNullList<Ingredient> input = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
+            NonNullList<ItemStack> input = NonNullList.withSize(buffer.readInt(), ItemStack.EMPTY);
 
             for (int i = 0; i < input.size(); i++)
             {
-                input.set(i, Ingredient.fromNetwork(buffer));
+                input.add(buffer.readItem());
             }
 
             ItemStack output = buffer.readItem();
@@ -107,9 +122,9 @@ public class WorkbenchRecipe implements Recipe<SimpleContainer>
         public void toNetwork(FriendlyByteBuf buffer, WorkbenchRecipe recipe) {
             buffer.writeInt(recipe.input.size());
 
-            for (Ingredient ingredient : recipe.getIngredients())
+            for (ItemStack item : recipe.input)
             {
-                ingredient.toNetwork(buffer);
+                buffer.writeItemStack(item, false);
             }
 
             buffer.writeItemStack(recipe.getResultItem(null), false);

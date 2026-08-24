@@ -4,6 +4,10 @@
     {
       "item": "minecraft:stone",
       "count": 6
+    },
+    {
+      "item": "minecraft:dirt",
+      "count": 25
     }
   ],
   "output": {
