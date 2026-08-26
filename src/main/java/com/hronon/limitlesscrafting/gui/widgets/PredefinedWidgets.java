@@ -78,10 +78,10 @@ public class PredefinedWidgets
                     + req_amount
                     + "]";
 
-            var display_color = Color.argb(213, 130, 246, 255);
+            var display_color = Color.rgb(213, 32, 39);
             if (amount >= req_amount)
             {
-                display_color = Color.argb(7, 177, 81, 255);
+                display_color = Color.rgb(7, 177, 81);
             }
 
             var text_widget = new TextWidget<>(display_text)

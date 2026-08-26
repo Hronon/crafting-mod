@@ -100,7 +100,8 @@ public class WorkbenchScreen
 
             for (ItemStack req : recipe.inputs())
             {
-                var test = PredefinedWidgets.recipe_requirement(req).get();
+                // copy ItemStack so on Client displayed correct item count
+                var test = PredefinedWidgets.recipe_requirement(req.copy()).get();
                 recipe_list_widget.child(test);
             }
         }
