@@ -9,6 +9,7 @@ import brachy.modularui.value.ObjectValue;
 import brachy.modularui.value.sync.ModularSyncManager;
 import brachy.modularui.value.sync.SyncHandler;
 import brachy.modularui.widget.Widget;
+import brachy.modularui.widgets.ListWidget;
 import brachy.modularui.widgets.TextWidget;
 import brachy.modularui.widgets.layout.Flow;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
@@ -21,6 +22,20 @@ public class PredefinedWidgets
     public static RecipeRequirementDisplay recipe_requirement(ItemStack req)
     {
         return new RecipeRequirementDisplay().require(req);
+    }
+
+    public static ListWidget recipe_requirement_list(WorkbenchRecipe recipe)
+    {
+        var widget = new ListWidget<>();
+
+        for (ItemStack req : recipe.inputs())
+        {
+            // copy ItemStack so on Client displayed correct item count
+            var test = PredefinedWidgets.recipe_requirement(req.copy()).get();
+            widget.child(test);
+        }
+
+        return widget;
     }
 
     public static class RecipeRequirementDisplay
@@ -61,6 +76,7 @@ public class PredefinedWidgets
             item_name = item_name.substring(1, item_name.length() - 1);
             var req_amount = item.getCount();
             var amount = 0;
+            var remain = amount - req_amount;
 
             item.setCount(1);
 
@@ -71,18 +87,17 @@ public class PredefinedWidgets
 
             flow.child(item_widget);
 
-            var display_text = item_name
-                    + " ["
-                    + amount
-                    + "/"
-                    + req_amount
-                    + "]";
-
             var display_color = Color.rgb(213, 32, 39);
-            if (amount >= req_amount)
+            if (remain > 0)
             {
                 display_color = Color.rgb(7, 177, 81);
             }
+
+            var display_text = String.format("%s %d/%d [%d]",
+                    item_name,
+                    amount, req_amount,
+                    remain
+            );
 
             var text_widget = new TextWidget<>(display_text)
                     .color(display_color);

@@ -96,14 +96,10 @@ public class WorkbenchScreen
 
             text_layout.child(new TextWidget(item_name));
 
-            recipe_list_widget.child(flow);
+            var requirements = PredefinedWidgets.recipe_requirement_list(recipe);
+            requirements.full();
 
-            for (ItemStack req : recipe.inputs())
-            {
-                // copy ItemStack so on Client displayed correct item count
-                var test = PredefinedWidgets.recipe_requirement(req.copy()).get();
-                recipe_list_widget.child(test);
-            }
+            recipe_list_widget.child(requirements);
         }
 
         var player_inventory = SlotGroupWidget.playerInventory(true);
