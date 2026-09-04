@@ -4,36 +4,39 @@ import brachy.modularui.factory.GuiData;
 import brachy.modularui.screen.ModularPanel;
 import brachy.modularui.screen.UISettings;
 import brachy.modularui.utils.Alignment;
-import brachy.modularui.value.ObjectValue;
 import brachy.modularui.value.sync.PanelSyncManager;
 import brachy.modularui.widgets.*;
 import brachy.modularui.widgets.layout.Flow;
 import brachy.modularui.widgets.layout.Grid;
 import com.hronon.limitlesscrafting.blocks.Workbench;
-import com.hronon.limitlesscrafting.blocks.WorkbenchBlockEntity;
 import com.hronon.limitlesscrafting.gui.widgets.CustomItemDisplayWidget;
 import com.hronon.limitlesscrafting.gui.widgets.PredefinedWidgets;
 import com.hronon.limitlesscrafting.gui.widgets.RecipeOutput;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
-import com.hronon.limitlesscrafting.registries.Items;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class WorkbenchScreen
 {
     private Level level;
+    private Player player;
+
+    private List<WorkbenchRecipe> availableRecipes = new ArrayList<>(1);
+    private List<ItemStack> availableItems = new ArrayList<>(1);
+
+    private Optional<WorkbenchRecipe> selectedRecipe = Optional.empty();
+    private int craftAmount = 0;
+    private int amountCanCraft = 0;
 
     public WorkbenchScreen(Level level)
     {
         this.level = level;
+        this.availableRecipes = getAvailableRecipes();
     }
 
     public ModularPanel<?> get(GuiData guiData, PanelSyncManager panelSyncManager, UISettings uiSettings)
@@ -64,7 +67,7 @@ public class WorkbenchScreen
                 .scrollable()
                 .collapseDisabledChildren();
 
-        for (WorkbenchRecipe recipe : getMatchingRecipes())
+        for (WorkbenchRecipe recipe : getAvailableRecipes())
         {
             var flow = Flow.row()
                     .widthRel(1f)
@@ -127,9 +130,54 @@ public class WorkbenchScreen
         return panel;
     }
 
-    public List<WorkbenchRecipe> getMatchingRecipes()
+    public void setCraftAmount(int amount)
     {
-        var rm = this.level.getRecipeManager();
-        return rm.getAllRecipesFor(WorkbenchRecipe.Type.INSTANCE);
+        if (selectedRecipe.isEmpty())
+            return;
+
+        craftAmount = Math.max(0, Math.min(amount, amountCanCraft));
+    }
+
+    public void setMaxAmount()
+    {
+        setCraftAmount(amountCanCraft);
+    }
+
+    public void craft()
+    {
+        
+    }
+
+    public List<ItemStack> getAvailableItems()
+    {
+        return new ArrayList<>(1);
+    }
+
+    public void selectRecipe(int index)
+    {
+        if (index >= 0 && index < availableRecipes.size())
+        {
+            selectRecipe(availableRecipes.get(index));
+        }
+    }
+
+    private int findMaxCraftAmount(WorkbenchRecipe recipe, List<ItemStack> items)
+    {
+        return 0;
+    }
+
+    private void selectRecipe(WorkbenchRecipe recipe)
+    {
+        availableItems = getAvailableItems();
+        amountCanCraft = findMaxCraftAmount(recipe, availableItems);
+        craftAmount = 0;
+
+        selectedRecipe = Optional.of(recipe);
+    }
+
+    private List<WorkbenchRecipe> getAvailableRecipes()
+    {
+        return this.level.getRecipeManager()
+                .getAllRecipesFor(WorkbenchRecipe.Type.INSTANCE);
     }
 }
