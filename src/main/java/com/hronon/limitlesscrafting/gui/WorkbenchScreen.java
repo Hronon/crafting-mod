@@ -12,6 +12,7 @@ import com.hronon.limitlesscrafting.gui.widgets.CustomItemDisplayWidget;
 import com.hronon.limitlesscrafting.gui.widgets.PredefinedWidgets;
 import com.hronon.limitlesscrafting.gui.widgets.RecipeOutput;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,16 +33,16 @@ public class WorkbenchScreen
     private int craftAmount = 0;
     private int amountCanCraft = 0;
 
-    public WorkbenchScreen(Level level)
+    public WorkbenchScreen(Player player)
     {
-        this.level = level;
+        this.player = player;
+        this.level = player.level();
         this.availableRecipes = getAvailableRecipes();
     }
 
     public ModularPanel<?> get(GuiData guiData, PanelSyncManager panelSyncManager, UISettings uiSettings)
     {
         uiSettings.getRecipeViewerSettings().disable();
-        uiSettings.useTheme("Create");
 
         // main layout
         var main_layout = Flow.row();
@@ -55,16 +56,6 @@ public class WorkbenchScreen
         // center panel for recipe list and preview
         var vertical_center_layout = Flow.col();
         vertical_center_layout.sizeRel(0.5f, 1f);
-
-        var paged_widget = new PagedWidget();
-        paged_widget.sizeRel(1f, 0.5f);
-        paged_widget.top(0);
-
-        var recipe_list_widget = new Grid();
-        recipe_list_widget
-                .full()
-                .scrollable()
-                .collapseDisabledChildren();
 
         for (WorkbenchRecipe recipe : getAvailableRecipes())
         {
@@ -101,15 +92,13 @@ public class WorkbenchScreen
             var requirements = PredefinedWidgets.recipe_requirement_list(recipe);
             requirements.full();
 
-            recipe_list_widget.child(requirements);
+            left_panel_layout.child(requirements);
         }
 
         var player_inventory = SlotGroupWidget.playerInventory(true);
         player_inventory.heightRel(0.2f);
 
-        paged_widget.addPage(recipe_list_widget);
         vertical_center_layout
-                .child(paged_widget)
                 .child(player_inventory);
 
         main_layout.child(vertical_center_layout);
@@ -117,6 +106,21 @@ public class WorkbenchScreen
         // right panel for recipe requirements and output\
         var right_panel = Flow.col();
         right_panel.widthRel(0.25f);
+
+        var max_button = new ButtonWidget<>()
+                .onMousePressed((context, button) -> {
+                    if (button == 0 || button == 1)
+                    {
+                        selectRecipe(0);
+                        setMaxAmount();
+                        craft();
+                        return true;
+                    }
+
+                    return false;
+                });
+        max_button.size(50);
+        right_panel.child(max_button);
 
         main_layout.child(right_panel);
 
@@ -147,7 +151,43 @@ public class WorkbenchScreen
         if (selectedRecipe.isEmpty())
             return;
 
-        
+        var recipe = selectedRecipe.get();
+        var inv = player.getInventory();
+        var result_item = selectedRecipe.get().getResultItem(null);
+
+        recipe.inputs().forEach(stack ->
+            takeItemsFromInventory(inv, stack.getItem(), stack.getCount() * craftAmount)
+        );
+
+        putItemsToInventory(inv, result_item.getItem(), craftAmount * result_item.getCount());
+        inv.setChanged();
+    }
+
+    private void takeItemsFromInventory(Inventory inv, Item item, int amount)
+    {
+        int remain = amount;
+
+        for (ItemStack stack : inv.items)
+        {
+            if (!stack.isEmpty() && stack.is(item) && remain > 0)
+            {
+                int to_remove = Math.min(stack.getCount(), remain);
+                stack.shrink(to_remove);
+                remain -= to_remove;
+            }
+        }
+    }
+
+    private void putItemsToInventory(Inventory inv, Item item, int amount)
+    {
+        int remain = amount;
+
+        while (remain > 0)
+        {
+            int to_add = Math.min(item.getMaxStackSize(), remain);
+            inv.add(new ItemStack(item, to_add));
+            remain -= to_add;
+        }
     }
 
     public Map<Item, Integer> getAvailableItems(WorkbenchRecipe recipe)

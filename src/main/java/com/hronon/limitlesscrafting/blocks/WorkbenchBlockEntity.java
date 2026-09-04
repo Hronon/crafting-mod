@@ -46,7 +46,8 @@ public class WorkbenchBlockEntity extends BlockEntity implements IUIHolder
 
     public WorkbenchBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntities.WORKBENCH.get(), pos, state);
-        this.screen = new WorkbenchScreen(MCHelper.getPlayer().level());
+        assert MCHelper.getPlayer() != null;
+        this.screen = new WorkbenchScreen(MCHelper.getPlayer());
     }
 
     @Override
