@@ -8,18 +8,17 @@ import brachy.modularui.value.sync.PanelSyncManager;
 import brachy.modularui.widgets.*;
 import brachy.modularui.widgets.layout.Flow;
 import brachy.modularui.widgets.layout.Grid;
-import com.hronon.limitlesscrafting.blocks.Workbench;
 import com.hronon.limitlesscrafting.gui.widgets.CustomItemDisplayWidget;
 import com.hronon.limitlesscrafting.gui.widgets.PredefinedWidgets;
 import com.hronon.limitlesscrafting.gui.widgets.RecipeOutput;
 import com.hronon.limitlesscrafting.recipes.WorkbenchRecipe;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorkbenchScreen
 {
@@ -27,7 +26,7 @@ public class WorkbenchScreen
     private Player player;
 
     private List<WorkbenchRecipe> availableRecipes = new ArrayList<>(1);
-    private List<ItemStack> availableItems = new ArrayList<>(1);
+    private Map<Item, Integer> availableItems = new HashMap<>();
 
     private Optional<WorkbenchRecipe> selectedRecipe = Optional.empty();
     private int craftAmount = 0;
@@ -145,12 +144,37 @@ public class WorkbenchScreen
 
     public void craft()
     {
+        if (selectedRecipe.isEmpty())
+            return;
+
         
     }
 
-    public List<ItemStack> getAvailableItems()
+    public Map<Item, Integer> getAvailableItems(WorkbenchRecipe recipe)
     {
-        return new ArrayList<>(1);
+        Map<Item, Integer> totals = new HashMap<>();
+
+        recipe.inputs()
+            .stream()
+            .map(ItemStack::getItem)
+            .forEach((item) -> {
+
+                totals.put(item, 0);
+
+                player.getInventory().items.stream()
+                        .filter(stack ->
+                                stack.getItem() == item
+                        )
+                        .forEach(stack ->
+                                totals.merge(
+                                    stack.getItem(),
+                                    stack.getCount(),
+                                    Integer::sum
+                                )
+                        );
+            });
+
+        return totals;
     }
 
     public void selectRecipe(int index)
@@ -161,14 +185,22 @@ public class WorkbenchScreen
         }
     }
 
-    private int findMaxCraftAmount(WorkbenchRecipe recipe, List<ItemStack> items)
+    private int findMaxCraftAmount(WorkbenchRecipe recipe, Map<Item, Integer> available)
     {
-        return 0;
+        AtomicInteger max = new AtomicInteger(Integer.MAX_VALUE);
+
+        recipe.inputs()
+                .forEach(stack -> {
+                    var have = available.get(stack.getItem());
+                    max.set(Math.min(have / stack.getCount(), max.get()));
+                });
+
+        return max.get();
     }
 
     private void selectRecipe(WorkbenchRecipe recipe)
     {
-        availableItems = getAvailableItems();
+        availableItems = getAvailableItems(recipe);
         amountCanCraft = findMaxCraftAmount(recipe, availableItems);
         craftAmount = 0;
 
